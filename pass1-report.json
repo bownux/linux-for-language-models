@@ -1,19 +1,19 @@
 {
   "gate": "pass1",
   "version": "1.0",
-  "date": "2026-08-27",
+  "date": "2026-08-28",
   "book_dir": "/home/luis/ai/books-by-ai/books/linux-for-language-models",
   "verdict": "PASS",
   "reject_count": 0,
   "warn_count": 0,
   "findings": [],
   "measured": {
-    "body_words_measured": 25476,
-    "print_equivalent_pages": 85,
+    "body_words_measured": 25918,
+    "print_equivalent_pages": 86,
     "chapter_words": {
       "ch01-the-operator-who-cannot-see-the-screen.md": 3413,
       "ch02-one-shot-one-truth.md": 3456,
-      "ch03-reading-the-machine.md": 3421,
+      "ch03-reading-the-machine.md": 3863,
       "ch04-services-without-a-status-screen.md": 3095,
       "ch05-editing-without-an-editor.md": 2941,
       "ch06-the-blast-radius-chapter.md": 2988,

@@ -36,7 +36,11 @@ header, here without the tool. The fourth field, `50/5997`, is runnable threads 
 total threads; the fifth is the PID most recently assigned, a rough odometer of
 process churn. A load near 39 would be alarming on a laptop; on this machine — whose
 `ps` output below shows several large model-inference servers resident — it is a
-working day. The point of the example is the *reading*: a snapshot plus knowledge of
+working day. (Scale before judgment, always: on a 2-CPU cloud instance the same
+figure would mean twenty-fold oversubscription and a machine in real distress; the
+introduction shot later in this chapter reads the CPU count for exactly this
+reason, and the pressure files below measure the distress directly instead of
+inferring it.) The point of the example is the *reading*: a snapshot plus knowledge of
 the machine's role produced a judgment, no repainting required. And because the
 snapshot is text in a transcript, tomorrow's judgment can diff against it, which no
 glance at a dashboard ever supported.
@@ -141,14 +145,30 @@ matters enough to act on, take a longer gap or several short ones — a single
 one-second sample can catch a freak spike or miss one, a caveat the last section of
 this chapter returns to.
 
+One honesty note on the arithmetic itself: the interval in that listing is
+approximate, not exact. `sleep 1` guarantees *at least* a second, the two file reads
+are not instantaneous, and on a loaded machine the scheduler can add jitter between
+them — so the true gap might be 1.02 seconds while the subtraction assumes 1.00,
+overstating the rate by the same couple of percent. For a triage read that error is
+noise; for a rate you will act on or record, shrink it structurally: lengthen the gap
+(the error is fixed overhead, so ten seconds of gap makes it ten times smaller), or
+capture the clock *with* each sample — read `/proc/uptime` in the same breath as the
+counter and divide by the measured gap rather than the intended one. The two reads
+themselves need no synchronization beyond this — each read of a `/proc` counter file
+is internally consistent — the uncertainty lives entirely in the gap's length, which
+is why measuring the gap, rather than trusting it, closes the question.
+
 ## Memory: read the answer the kernel already computed
 
 `/proc/meminfo` is the machine's memory ledger, and it is the site of the register's
 most durable misreading. The file's first line, `MemTotal`, and second, `MemFree`,
 seduce every newcomer into the subtraction `used = total - free` — which on any
 healthy Linux machine reports near-exhaustion, because the kernel deliberately spends
-otherwise-idle memory on disk cache and reclaims it on demand. `MemFree` measures
-memory doing *nothing*, and a well-run kernel keeps that number low on purpose. The
+otherwise-idle memory on disk cache and reclaims it on demand. `MemFree` counts only
+pages allocated to nothing at all — the kernel documentation defines it as the sum of
+the zones' free pages, and the cache spent above appears under `Cached` and
+`Buffers`, *not* here — so a well-run kernel keeps `MemFree` low on purpose: idle
+pages are wasted pages. The
 number that answers the question people actually have — *how much memory could
 applications obtain before the machine starts to struggle* — is `MemAvailable`,
 an estimate the kernel itself computes and publishes precisely because the naive
@@ -253,8 +273,11 @@ your field. Explicit nulls: an empty mount point arrives as `null`, not as a mis
 column that re-numbers its neighbors — the exact accident that breaks whitespace
 scraping. And a real parser: `python3` is present on effectively every machine this
 book's reader will touch, and `json.load` plus a loop replaces a class of `awk`
-fragility with a language that has actual data structures. The register's rule of
-precedence follows: **JSON flag if the tool has one; documented stable format
+fragility with a language that has actual data structures. (Where it is installed,
+`jq` is the field's dedicated instrument for exactly this — terser than the loop
+above, worth knowing, and chapter 5 uses it for a one-line edit; `python3` carries
+the listings here because it is effectively always present, which for one-shot work
+beats elegance.) The register's rule of precedence follows: **JSON flag if the tool has one; documented stable format
 (`--porcelain`, `-P`) if not; positional scraping only against formats a standard
 pins, and never against human-layout output you do not control.**
 
@@ -447,7 +470,37 @@ for an hour and collapses before your read. Where an interactive human's dashboa
 would also likely miss these — human attention is a sparse sampler too — the
 transcript operator has three honest recourses. Sample deliberately: several reads at
 noted intervals, chosen to bracket the suspected behavior, beat one read at an
-arbitrary moment. Use the accumulators: the kernel's counters integrate what happened
+arbitrary moment. Concretely, a bounded burst sampler is one loop:
+
+```bash no-run
+for i in 1 2 3 4 5 6; do
+  printf "%s  io-some=%s  load1=%s\n" \
+    "$(date -u +%H:%M:%S)" \
+    "$(awk -F"avg10=" "NR==1 {split(\$2,a,\" \"); print a[1]}" /proc/pressure/io)" \
+    "$(cut -d" " -f1 /proc/loadavg)"
+  sleep 5
+done
+```
+
+```output
+16:21:32  io-some=2.16  load1=4.89
+16:21:37  io-some=1.45  load1=4.98
+16:21:42  io-some=0.79  load1=5.06
+16:21:47  io-some=0.53  load1=5.13
+16:21:52  io-some=0.29  load1=4.96
+16:21:57  io-some=0.19  load1=4.89
+```
+
+Thirty seconds of the authoring machine, and the run happened to catch something a
+single read would have flattened: an I/O pressure spike *in mid-decay* — 2.16
+falling to 0.19 across six samples while the load average barely moved. One read at
+16:21:32 would have said "I/O problem"; one read at 16:21:57 would have said "all
+quiet"; the six together say "a burst just ended", which is a different diagnosis
+from either. The sampler's design carries the section's rules in miniature: a fixed
+count (never `while true` — chapter 1's hang), an interval chosen to bracket the
+suspected behavior's timescale, a timestamp on every line so the record can be
+correlated with logs afterward, and the whole thing cheap enough to run three of at
+different intervals when you do not yet know the timescale you are hunting. Use the accumulators: the kernel's counters integrate what happened
 *between* your samples — a delta in `/proc/diskstats` over ten minutes has seen every
 I/O in the gap, including the burst your snapshots straddled. And use the machine's
 own memory: the logging and journal infrastructure of chapter 4 is precisely the

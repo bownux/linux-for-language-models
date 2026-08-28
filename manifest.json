@@ -11,8 +11,8 @@
     "isbn": null
   },
   "structure": {
-    "word_count_body": 25476,
-    "print_equivalent_pages": 85,
+    "word_count_body": 25918,
+    "print_equivalent_pages": 86,
     "chapters": [
       {
         "number": 1,
@@ -43,7 +43,7 @@
       {
         "number": 3,
         "title": "Reading the Machine",
-        "words": 3421,
+        "words": 3863,
         "source_file": "ch03-reading-the-machine.md",
         "written_by": [
           {
