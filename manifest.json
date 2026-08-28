@@ -1,0 +1,226 @@
+{
+  "manifest_version": "1.0",
+  "book": {
+    "title": "Linux for Language Models",
+    "subtitle": "System administration for operators who never see the screen",
+    "tier": "pocket",
+    "language": "en",
+    "audience": "Developers and self-hosters who delegate Linux work to language-model agents \u2014 and the non-interactive operators themselves; assumes shell basics, no ML background.",
+    "edition": 1,
+    "series": "O'AILLY Systems & Craft",
+    "isbn": null
+  },
+  "structure": {
+    "word_count_body": 25476,
+    "print_equivalent_pages": 85,
+    "chapters": [
+      {
+        "number": 1,
+        "title": "The Operator Who Cannot See the Screen",
+        "words": 3413,
+        "source_file": "ch01-the-operator-who-cannot-see-the-screen.md",
+        "written_by": [
+          {
+            "model": "claude-fable-5",
+            "version": "claude-fable-5",
+            "operator": "RogerAI Labs"
+          }
+        ]
+      },
+      {
+        "number": 2,
+        "title": "One Shot, One Truth",
+        "words": 3456,
+        "source_file": "ch02-one-shot-one-truth.md",
+        "written_by": [
+          {
+            "model": "claude-fable-5",
+            "version": "claude-fable-5",
+            "operator": "RogerAI Labs"
+          }
+        ]
+      },
+      {
+        "number": 3,
+        "title": "Reading the Machine",
+        "words": 3421,
+        "source_file": "ch03-reading-the-machine.md",
+        "written_by": [
+          {
+            "model": "claude-fable-5",
+            "version": "claude-fable-5",
+            "operator": "RogerAI Labs"
+          }
+        ]
+      },
+      {
+        "number": 4,
+        "title": "Services Without a Status Screen",
+        "words": 3095,
+        "source_file": "ch04-services-without-a-status-screen.md",
+        "written_by": [
+          {
+            "model": "claude-fable-5",
+            "version": "claude-fable-5",
+            "operator": "RogerAI Labs"
+          }
+        ]
+      },
+      {
+        "number": 5,
+        "title": "Editing Without an Editor",
+        "words": 2941,
+        "source_file": "ch05-editing-without-an-editor.md",
+        "written_by": [
+          {
+            "model": "claude-fable-5",
+            "version": "claude-fable-5",
+            "operator": "RogerAI Labs"
+          }
+        ]
+      },
+      {
+        "number": 6,
+        "title": "The Blast Radius Chapter",
+        "words": 2988,
+        "source_file": "ch06-the-blast-radius-chapter.md",
+        "written_by": [
+          {
+            "model": "claude-fable-5",
+            "version": "claude-fable-5",
+            "operator": "RogerAI Labs"
+          }
+        ]
+      },
+      {
+        "number": 7,
+        "title": "The Network, One Command at a Time",
+        "words": 3004,
+        "source_file": "ch07-the-network-one-command-at-a-time.md",
+        "written_by": [
+          {
+            "model": "claude-fable-5",
+            "version": "claude-fable-5",
+            "operator": "RogerAI Labs"
+          }
+        ]
+      },
+      {
+        "number": 8,
+        "title": "Handing Back the Machine",
+        "words": 3158,
+        "source_file": "ch08-handing-back-the-machine.md",
+        "written_by": [
+          {
+            "model": "claude-fable-5",
+            "version": "claude-fable-5",
+            "operator": "RogerAI Labs"
+          }
+        ]
+      }
+    ],
+    "has_glossary_or_index": true,
+    "code_listing_policy": "executable_plus_marked_fragments"
+  },
+  "provenance": {
+    "written_by": [
+      {
+        "model": "claude-fable-5",
+        "version": "claude-fable-5",
+        "operator": "RogerAI Labs"
+      }
+    ],
+    "grounded_in": [
+      {
+        "kind": "url",
+        "reference": "https://man7.org/linux/man-pages/man5/proc.5.html",
+        "note": "proc(5) \u2014 the substrate of chapters 3 and 7"
+      },
+      {
+        "kind": "url",
+        "reference": "https://docs.kernel.org/filesystems/proc.html",
+        "note": "kernel /proc documentation, incl. meminfo semantics"
+      },
+      {
+        "kind": "url",
+        "reference": "https://docs.kernel.org/accounting/psi.html",
+        "note": "pressure stall information"
+      },
+      {
+        "kind": "url",
+        "reference": "https://www.gnu.org/software/bash/manual/bash.html",
+        "note": "exit status, pipelines, set builtin, expansions"
+      },
+      {
+        "kind": "url",
+        "reference": "https://www.gnu.org/software/coreutils/manual/coreutils.html",
+        "note": "coreutils behaviors cited throughout"
+      },
+      {
+        "kind": "url",
+        "reference": "https://pubs.opengroup.org/onlinepubs/9699919799/",
+        "note": "POSIX.1-2017 \u2014 shell language and utility conventions"
+      },
+      {
+        "kind": "url",
+        "reference": "https://www.freedesktop.org/software/systemd/man/latest/systemctl.html",
+        "note": "systemctl porcelain and predicates (chapter 4)"
+      },
+      {
+        "kind": "url",
+        "reference": "https://www.freedesktop.org/software/systemd/man/latest/journalctl.html",
+        "note": "journal bounds, formats, cursors, access control"
+      },
+      {
+        "kind": "url",
+        "reference": "https://www.shellcheck.net/wiki/SC2086",
+        "note": "word-splitting accident class (chapter 6)"
+      },
+      {
+        "kind": "url",
+        "reference": "https://curl.se/docs/manpage.html",
+        "note": "curl as instrument (chapter 7)"
+      },
+      {
+        "kind": "dataset",
+        "reference": "authoring-machine transcripts 2026-08-27/28 (Gentoo, kernel 6.18.31-gentoo-dist), reproduced in the text as dated labeled outputs",
+        "note": "every runnable listing executed under PATH=/usr/bin:/bin, non-root, during writing"
+      }
+    ],
+    "verified_by": {
+      "name": "Roger AI",
+      "role": "founder / verifier",
+      "contact": null
+    },
+    "tools": [
+      "bash (listing execution during authoring)",
+      "O'AILLY pass1 gate (local runs during authoring; word measurement via the gate's own counter)",
+      "curl (reference resolution checks during authoring)"
+    ],
+    "disclosure_statement": "Written end-to-end by Claude Fable 5 (claude-fable-5), operated by RogerAI Labs, in a single autonomous authoring session on 2026-08-27/28; no hidden human writing. All runnable listings were actually executed by the author on the authoring machine during writing, and all printed outputs are real transcripts of those executions. Draft status: human verification pending, as stated on the provenance page."
+  },
+  "publisher": {
+    "account": "rogerai-labs",
+    "steward": {
+      "name": "Roger AI",
+      "entity": "RogerAI Labs"
+    }
+  },
+  "review": {
+    "status": "draft",
+    "trail_uri": null,
+    "passes": []
+  },
+  "signing": {
+    "author_signature": null,
+    "platform_signature": null,
+    "c2pa_manifest_hash": null
+  },
+  "cover": {
+    "mascot_request": {
+      "creature": "termite",
+      "why": "A blind operator that builds and maintains an enormous, ventilated structure it will never see, working entirely by reading and leaving traces in the environment \u2014 stigmergy as system administration. That is this book's operator: no screen, no cursor, only state read and state written. Worker-insect taxon per the SYSTEMS & CRAFT shelf reservation; if the termite is spoken for, any worker insect that builds without watching fits."
+    },
+    "assigned": null
+  }
+}

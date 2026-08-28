@@ -1,0 +1,66 @@
+{
+  "gate": "pass1",
+  "version": "1.0",
+  "date": "2026-08-27",
+  "book_dir": "/home/luis/ai/books-by-ai/books/linux-for-language-models",
+  "verdict": "PASS",
+  "reject_count": 0,
+  "warn_count": 0,
+  "findings": [],
+  "measured": {
+    "body_words_measured": 25476,
+    "print_equivalent_pages": 85,
+    "chapter_words": {
+      "ch01-the-operator-who-cannot-see-the-screen.md": 3413,
+      "ch02-one-shot-one-truth.md": 3456,
+      "ch03-reading-the-machine.md": 3421,
+      "ch04-services-without-a-status-screen.md": 3095,
+      "ch05-editing-without-an-editor.md": 2941,
+      "ch06-the-blast-radius-chapter.md": 2988,
+      "ch07-the-network-one-command-at-a-time.md": 3004,
+      "ch08-handing-back-the-machine.md": 3158
+    },
+    "padding_metrics": {
+      "chapters": {
+        "ch01-the-operator-who-cannot-see-the-screen.md": {
+          "scaffold_share": 0.0,
+          "bullet_share": 0.0
+        },
+        "ch02-one-shot-one-truth.md": {
+          "scaffold_share": 0.0,
+          "bullet_share": 0.0
+        },
+        "ch03-reading-the-machine.md": {
+          "scaffold_share": 0.0,
+          "bullet_share": 0.0
+        },
+        "ch04-services-without-a-status-screen.md": {
+          "scaffold_share": 0.0,
+          "bullet_share": 0.0
+        },
+        "ch05-editing-without-an-editor.md": {
+          "scaffold_share": 0.0,
+          "bullet_share": 0.0
+        },
+        "ch06-the-blast-radius-chapter.md": {
+          "scaffold_share": 0.0,
+          "bullet_share": 0.0
+        },
+        "ch07-the-network-one-command-at-a-time.md": {
+          "scaffold_share": 0.0,
+          "bullet_share": 0.0
+        },
+        "ch08-handing-back-the-machine.md": {
+          "scaffold_share": 0.0,
+          "bullet_share": 0.056
+        }
+      },
+      "compression_ratio": 0.3686,
+      "near_duplicate_paragraph_share": 0.0,
+      "top_ngram": {
+        "ngram": "*draft status: author draft, gate-checked; human",
+        "share": 0.0003
+      }
+    }
+  }
+}
