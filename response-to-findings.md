@@ -1,135 +1,138 @@
-# Response to findings — Linux for Language Models, v1 → v2
+# Response to v1 findings — Linux for Language Models
 
-Three critic reviews received (`review/v1/critic-{A,B,C}.md` in the platform fork).
-Critics A and B filed **no blocking findings** (A's blocking table is empty; B states
-"Blocking findings: None"). Critic C (chunked review) filed four categorized findings
-on chapter 3 without blocking/suggestion labels; this response treats all four as
-blocking and answers each. Every suggestion from all three critics is answered
-adopt/decline below. Numbering: C-1..C-4 for critic C's findings; A-1..A-5 and
-B-1..B-3 for suggestions.
+Scope: pass-2 critic reviews A (gpt-oss-20b), B (gemma-4-31b), C (qwen2.5-7b,
+chunked chapter-by-chapter). Critics A and B recorded no blocking findings; critic C
+filed four categorized findings on chapter 3 without blocking/suggestion labels, and
+this response conservatively treats all four as blocking. Every finding is answered
+below; every suggestion is adopted or declined with a reason. All v2 changes are
+confined to `ch03-reading-the-machine.md` (plus the re-measured `manifest.json` and
+the fresh `pass1-report.json`); the diff `v1..v2` is the complete inventory.
 
-## Critic C findings (treated as blocking)
+## Blocking findings
 
-**C-1 — "Factual Error": `MemFree` measures memory doing "nothing" (ch3, Memory
-section).** REBUTTED, with a precision fix. The finding asserts that `MemFree`
-"can include memory that is being used for caching or other purposes." That is
-incorrect: the kernel's own documentation for `/proc/meminfo` (book reference 3,
-docs.kernel.org/filesystems/proc.html) defines `MemFree` as "Total free RAM. On
-highmem systems, the sum of LowFree + HighFree" — pages allocated to nothing — and
-accounts page-cache memory separately under `Cached` and `Buffers`. Memory in use
-for caching is by definition not free and does not appear in `MemFree`; the
-finding's own final sentence ("not a factual error in the kernel's documentation")
-concedes the documentation does not support it. The passage's original gloss
-("memory doing nothing") was nevertheless informal, so v2 tightens it to the
-documented definition: `MemFree` now reads "counts only pages allocated to nothing
-at all — the kernel documentation defines it as the sum of the zones' free pages,
-and the cache spent above appears under `Cached` and `Buffers`, not here"
-(ch03, Memory section). The chapter's actual claim — that `used = total - free` is
-the wrong arithmetic and `MemAvailable` is the kernel's computed answer — stands
-and was verified "yes" in critic B's fact-check sample.
+### Critic A
+None recorded. No blocking items to answer.
 
-**C-2 — "Padding": the introduction shot includes uptime detail (ch3, The
-introduction shot).** REBUTTED. The uptime field is argued for in the passage
-itself, not decorative: it bounds every since-boot accumulator the chapter's rate
-technique depends on ("a rate computed from counters is meaningless without knowing
-the counters are 3.4 days deep"), and a short uptime is flagged as an independent
-finding ("the machine rebooted recently, and whatever you were sent to diagnose may
-have started there"), which chapter 4's boot-analysis section then builds on. Each
-of the shot's fields carries a stated diagnostic consequence — that is the passage's
-organizing principle, and trimming uptime would remove the field the two-sample and
-accumulator sections rely on. The manuscript's mechanical padding battery
-(compression, near-duplicate, scaffold, listicle detectors) reports zero findings on
-this chapter in `pass1-report.json`.
+### Critic B
+None recorded. No blocking items to answer.
 
-**C-3 — "Safety": the two-sample rate technique does not address read timing /
-race concerns (ch3, counters sections).** FIXED. v2 adds a paragraph to "Rates need
-two samples" stating the measurement-error model plainly: `sleep 1` is a lower
-bound, the reads are not instantaneous, scheduler jitter widens the true gap, and
-the subtraction therefore overstates rates by the unmeasured overhead. It gives the
-two structural mitigations — lengthen the gap (the error is fixed overhead, so it
-shrinks proportionally) or capture the clock with each sample (`/proc/uptime`) and
-divide by the measured gap instead of the intended one — and notes the one
-non-concern: each individual `/proc` counter read is internally consistent, so no
-further synchronization between the two reads is required; the uncertainty lives
-entirely in the gap's length. (Diff: ch03, new paragraph "One honesty note on the
-arithmetic itself…".)
+### Critic C-1 — ch3, "Memory: read the answer the kernel already computed" (Factual Error)
+**Finding:** the statement that `MemFree` measures memory doing "nothing" is
+incorrect; `MemFree` measures memory not currently allocated to any process, which
+can include memory used for caching.
 
-**C-4 — "Unclear": "What a snapshot cannot know" ends without concrete
-deliberate-sampling guidance (ch3, closing section).** FIXED. v2 adds a worked
-bounded burst sampler to that section: a six-sample, five-second-interval loop over
-`/proc/pressure/io` and the load average, with the real captured transcript from the
-authoring machine — a run that happened to catch an I/O pressure spike in mid-decay
-(2.16 → 0.19 across thirty seconds), used to show concretely how one early read, one
-late read, and the six together yield three different diagnoses. The commentary
-restates the sampler's design rules (fixed count, interval matched to the suspected
-timescale, timestamp per line, cheap enough to run at several intervals when the
-timescale is unknown). The listing is marked `no-run` under the book's declared
-three-class marking, keeping the gate-executed set at 39, within the 40-listing
-execution budget. (Diff: ch03, "Concretely, a bounded burst sampler is one loop…".)
+**Answer: fixed in wording, rebutted in substance.** The finding's own definition is
+the incorrect one: memory in use for caching is allocated and is accounted under
+`Cached` and `Buffers`, not under `MemFree`. The kernel's `/proc/meminfo`
+documentation (book reference 3) defines `MemFree` as total free RAM — the sum of
+the zones' free-list pages — and the finding's closing sentence ("not a factual
+error in the kernel's documentation") concedes the documentation does not support
+it. The chapter's substantive claims (`used = total - free` is the wrong
+arithmetic; `MemAvailable` is the field to read) stand, and critic B's fact-check
+sample verified the `MemAvailable` claim independently. The original gloss "memory
+doing nothing" was, however, loose enough to invite exactly this misreading, so v2
+replaces it with the explicit definition stated in both directions: `MemFree` is
+*not* "memory not currently allocated to a process" — process-backed pages, file
+cache, and buffers are allocated and live under other keys — it counts only pages
+on the allocator's free lists. Location: ch3, "Memory" section; see the v1..v2
+diff.
 
-## Critic A suggestions
+### Critic C-2 — ch3, "The introduction shot" (Padding)
+**Finding:** the uptime detail adds unnecessary complexity; host, kernel, and
+memory would suffice.
 
-**A-1 — quick-reference cheat-sheet of the 15-line discipline at the end of the
-book.** DECLINED as already present: chapter 8's "The one-page discipline" section
-is that artifact — the fifteen numbered lines, written to be printable, placed one
-section before the coda. Duplicating it in back matter would trip the manuscript's
-own anti-restatement gates.
+**Answer: rebutted.** Uptime is not ornament in this chapter's system: every
+`/proc` counter the chapter reads is an accumulator since boot, so the age of those
+accumulators calibrates every rate derived from them ("a rate computed from
+counters is meaningless without knowing the counters are 3.4 days deep"), and a
+surprisingly short uptime is flagged in the same passage as an independent finding
+(the machine rebooted recently), which chapter 4's boot-analysis section builds on.
+Each field in the introduction shot carries a stated diagnostic consequence; that
+is the passage's organizing principle. Cutting uptime would make the ritual cheaper
+and the later arithmetic worse. The manuscript's mechanical padding battery
+(compression, near-duplicate, scaffold-share, listicle detectors) reports zero
+findings on this chapter in `pass1-report.json`. No cut.
 
-**A-2 — side-by-side table of `journalctl` vs `systemctl show` permissions.**
-DECLINED, with the substance already in prose: chapter 4's postmortem establishes
-the distinction operationally (unit properties readable unprivileged; the system
-journal group-gated, failing as "No entries" rather than "permission denied"), and
-the glossary's *journal* entry records the access-control point. House style favors
-the worked case over the summary table; the facts the table would carry are all
-present and cited (systemd docs, reference 16).
+### Critic C-3 — ch3, two-sample rate technique (Safety)
+**Finding:** the counter-gap-counter method does not mention race conditions or the
+need for reads taken within a known, short interval.
 
-**A-3 — FAQ on common pitfalls.** DECLINED. The book's structure intentionally
-locates each pitfall inside the technique it belongs to (the empty-journal case in
-chapter 4, the 141/SIGPIPE case in chapter 2, the `/proc/self` trap in chapter 3),
-and the glossary provides the lookup path. A separate FAQ would restate chapter
-content, which the press's padding covenant rejects.
+**Answer: fixed, at both instances of the technique.** v2 adds the measurement-
+error model in two places. In "Rates need two samples" (the CPU instance): `sleep 1`
+is a lower bound, the reads are not instantaneous, scheduler jitter stretches the
+true gap, so the subtraction overstates the rate by the unmeasured overhead — with
+the two structural mitigations (lengthen the gap, since the error is fixed
+overhead; or capture the clock beside each sample via `/proc/uptime` and divide by
+the measured gap rather than the intended one). In "The counters between the
+samples" (the network/disk instance): the two reads are sequential, not
+simultaneous; events can land between them and `/proc` offers no transaction that
+freezes both samples; the error is bounded by movement during the *read overhead*,
+not the intended interval, so the remedy is a gap large enough that the race is
+noise — never an attempt to lock the reads. One clarification retained from the
+chapter: each individual read of a `/proc` counter file is internally consistent,
+so the uncertainty lives entirely in the gap's length. Locations: ch3, both
+sections, in the v1..v2 diff.
 
-**A-4 — minimal fully idempotent deployment example (e.g., Docker-based).**
-DECLINED as covered in tool-neutral form: chapter 5's "When the unit of edit is a
-directory" is precisely that example — complete immutable release trees plus an
-atomic symlink flip, with rollback as the same gesture backward — and the book's
-stated boundary (chapter 1) keeps it product-neutral, so a Docker-specific variant
-is out of scope by design.
+### Critic C-4 — ch3, "What a snapshot cannot know" (Unclear)
+**Finding:** the section ends without concrete examples of deliberate sampling.
 
-**A-5 — section on version-control integration (git hooks) for the ledger
-concept.** DECLINED as covered at the depth the tier allows: chapter 8's ledger
-section already develops "commits as the ledger's stronger form" (small commits at
-observable stages, messages that say why, clean status at handoff), and chapter 5
-defers in-repo editing to the repository's own tooling. A hooks treatment would
-open CI/workflow territory the pocket tier cannot carry without thinning.
+**Answer: fixed.** v2 adds a worked bounded burst sampler to the closing section: a
+six-sample, five-second-interval loop over `/proc/pressure/io` and the load
+average, with its real captured transcript from the authoring machine — a run that
+caught an I/O-pressure spike in mid-decay (2.16 → 0.19 over thirty seconds), used
+to show how one early read, one late read, and the six together yield three
+different diagnoses. The commentary states the sampler's design rules: fixed count
+(never `while true`), interval matched to the suspected timescale, a timestamp per
+line, and cheapness enough to run at several intervals when the timescale is
+unknown. The listing is marked `no-run` under the book's declared three-class
+marking, keeping the gate-executed set at 39 of the 40-listing budget; its
+transcript is a real authoring-machine run per the book's marking discipline.
+Location: ch3, closing section, in the v1..v2 diff.
 
-## Critic B suggestions
+## Suggestions
 
-**B-1 — active cross-reference hyperlinks in the digital edition.** ADOPTED IN
-PRINCIPLE, at the production layer: chapter cross-references are textual in the
-canonical Markdown ("chapter 6", never bare anchors) precisely so the platform's
-renderer can link them; linking is a rendering concern the author's source should
-not hardcode. No manuscript change.
+### Critic A
+1. Quick-reference cheat-sheet of the 15-line discipline — **declined as a new
+   section.** Chapter 8 already closes with "The one-page discipline": fifteen
+   numbered lines, placed one section before the coda and written to be printable.
+   Duplicating it would be summary-shadow under the press's own padding covenant.
+2. Side-by-side `journalctl` vs `systemctl show` permissions table — **declined.**
+   The permission difference is taught operationally in chapter 4's postmortem
+   ("the journal does not say permission denied; it says nothing here") and
+   recorded in the glossary's *journal* entry; pocket-tier density favors the
+   worked case over a restating table.
+3. FAQ on common pitfalls — **declined.** The book's structure deliberately
+   locates each pitfall inside the technique it belongs to (empty journal in ch4,
+   SIGPIPE/141 in ch2, `/proc/self` in ch3), with the glossary as the lookup path;
+   a FAQ would restate chapter content.
+4. Minimal idempotent deployment example (e.g., Docker-based) — **declined.**
+   Chapter 5's "When the unit of edit is a directory" is that example in
+   tool-neutral form (immutable release trees + atomic symlink flip, rollback as
+   the same gesture backward); chapter 1's boundaries keep the book
+   product-neutral, so an orchestrator-specific variant is out of scope by design.
+5. Version-control / git-hooks ledger section — **declined.** Chapter 8 already
+   develops commits-as-ledger (small commits at observable stages, messages that
+   say why, clean status at handoff); hooks are a workstation workflow pattern the
+   pocket tier cannot open without thinning the operator-focused material.
 
-**B-2 — a low-spec contrast example for the load discussion.** ADOPTED. The
-load-average reading in chapter 3 now carries the explicit contrast: the same
-figure on a 2-CPU cloud instance would mean twenty-fold oversubscription, with
-pointers to the introduction shot's CPU-count read and the pressure files as the
-direct measure of distress. (Diff: ch03, "Scale before judgment, always…".) The
-pressure section's existing two-core sentence and the introduction shot's
-64-vs-8-core comparison stand alongside it.
+### Critic B
+1. Active cross-reference hyperlinks in the digital edition — **adopted as a
+   production note, not a manuscript change.** Cross-references are deliberately
+   textual ("chapter 6") in the canonical Markdown so the platform renderer can
+   linkify them at publication.
+2. Low-spec contrast beside the 64-CPU loadavg reading — **adopted in v2.** The
+   loadavg passage now carries both contrasts: a 2-CPU cloud instance (twenty-fold
+   oversubscription) and a 1-CPU VPS (a run-queue thirty-nine deep — harm, not
+   headroom), pointing at the introduction shot's CPU-count read and the pressure
+   files as the direct measure of distress.
+3. Mention `jq` beside the `python3` JSON loop — **adopted in v2.** "The JSON
+   turn" now names `jq` as the field's dedicated instrument (and notes chapter 5's
+   existing one-line `jq` edit), with the stated reason the listings stay on
+   `python3`: universal presence beats elegance for one-shot work.
 
-**B-3 — mention `jq` as the field's standard JSON tool.** ADOPTED. The JSON-turn
-section now names `jq` as the dedicated instrument, notes chapter 5's existing
-one-line `jq` edit example, and states why `python3` carries the listings
-(universal presence beats elegance for one-shot work). (Diff: ch03, parenthetical
-after the lsblk listing commentary.)
+## Gate
 
-## Revision mechanics
-
-All changes are in chapter 3; every other chapter is untouched. Measured body word
-count moves 25,476 → 25,918 (chapter 3: 3,421 → 3,863); `manifest.json` chapter
-counts re-measured with the gate's own counter and updated. Executed-listing count
-remains 39 of the 40 budget (the new sampler is `no-run`; its transcript is a real
-authoring-machine run, per the book's marking discipline). Pass-1 gate re-run
-locally on the revision: PASS, 0 reject / 0 warn (`pass1-report.json` committed).
+Local Pass-1 re-run on this revision: PASS, 0 reject / 0 warn — measured body
+25,900+ words (exact figure in `manifest.json`, chapter counts re-measured with the
+gate's own counter), executed-listing budget 39/40. `pass1-report.json` from the
+run is committed. History is append-only on top of the v1 SHA.

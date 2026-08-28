@@ -37,10 +37,11 @@ total threads; the fifth is the PID most recently assigned, a rough odometer of
 process churn. A load near 39 would be alarming on a laptop; on this machine — whose
 `ps` output below shows several large model-inference servers resident — it is a
 working day. (Scale before judgment, always: on a 2-CPU cloud instance the same
-figure would mean twenty-fold oversubscription and a machine in real distress; the
-introduction shot later in this chapter reads the CPU count for exactly this
-reason, and the pressure files below measure the distress directly instead of
-inferring it.) The point of the example is the *reading*: a snapshot plus knowledge of
+figure would mean twenty-fold oversubscription and a machine in real distress; on
+a 1-CPU VPS it would mean the run-queue itself is thirty-nine deep, which is
+harm, not headroom. The introduction shot later in this chapter reads the CPU
+count for exactly this reason, and the pressure files below measure the distress
+directly instead of inferring it.) The point of the example is the *reading*: a snapshot plus knowledge of
 the machine's role produced a judgment, no repainting required. And because the
 snapshot is text in a transcript, tomorrow's judgment can diff against it, which no
 glance at a dashboard ever supported.
@@ -164,11 +165,12 @@ is why measuring the gap, rather than trusting it, closes the question.
 most durable misreading. The file's first line, `MemTotal`, and second, `MemFree`,
 seduce every newcomer into the subtraction `used = total - free` — which on any
 healthy Linux machine reports near-exhaustion, because the kernel deliberately spends
-otherwise-idle memory on disk cache and reclaims it on demand. `MemFree` counts only
-pages allocated to nothing at all — the kernel documentation defines it as the sum of
-the zones' free pages, and the cache spent above appears under `Cached` and
-`Buffers`, *not* here — so a well-run kernel keeps `MemFree` low on purpose: idle
-pages are wasted pages. The
+otherwise-idle memory on disk cache and reclaims it on demand. `MemFree` is not
+"memory not currently allocated to a process." Process-backed pages, file cache, and
+buffers are all allocated; they live under other keys (`Cached`, `Buffers`, the
+anon/file breakdowns). `MemFree` counts only pages on the allocator's free lists —
+the kernel documentation defines it as the sum of the zones' free pages — so a
+well-run kernel keeps `MemFree` low on purpose: idle pages are wasted pages. The
 number that answers the question people actually have — *how much memory could
 applications obtain before the machine starts to struggle* — is `MemAvailable`,
 an estimate the kernel itself computes and publishes precisely because the naive
@@ -369,6 +371,16 @@ doing I/O) is the raw material of the "utilization" figure `iostat` renders, and
 delta there that approaches the sampling interval means the device was busy nearly
 the whole gap — the single most useful one-number answer to *is this disk the
 bottleneck*.
+
+The two `awk` reads are sequential, not simultaneous. Packets (or sector completions)
+can land in the few milliseconds between them, and a loaded scheduler can stretch
+that further. That is a real race — `/proc` has no transaction that would freeze
+both samples — but it is also why the gap is a full second, or ten, rather than two
+back-to-back reads. The error is bounded by however much moved during the *read
+overhead*, not during the intended interval. Lengthening the gap, or capturing
+`/proc/uptime` beside each sample as the CPU section already recommended, shrinks
+the race the same way. Do not try to lock the two reads together; make the gap large
+enough that the race is noise.
 
 ## The file as a fact
 
